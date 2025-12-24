@@ -121,7 +121,7 @@
 
 <style scoped>
 .services {
-  min-height: auto;
+  min-height: 100vh;
   width: 100%;
   background: transparent;
   display: flex;
@@ -132,6 +132,8 @@
   color: white;
   margin: 0;
   padding: 4rem 0;
+  
+  transform: translateY(-24px);
 }
 
 /* Animated Orbs */
