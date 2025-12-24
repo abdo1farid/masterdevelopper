@@ -35,14 +35,20 @@
         <p class="hero-subtitle">
           Cutting-edge technology meets stunning design. Experience the next evolution of web development.
         </p>
-        <div class="button-group">
-          <button class="cta-button primary">
-            <span>Start Building</span>
-            <span class="button-shine"></span>
+        <div class="waitlist-form">
+          <input 
+            v-model="email"
+            type="email" 
+            placeholder="Enter your email to join the waitlist" 
+            class="waitlist-input"
+            @keyup.enter="submitWaitlist"
+          />
+          <button class="waitlist-button" @click="submitWaitlist" :disabled="isLoading">
+            {{ isLoading ? 'Joining...' : 'Join Waitlist' }}
           </button>
-          <button class="cta-button secondary">
-            <span>View Showcase</span>
-          </button>
+          <div v-if="message" :class="['form-message', messageType]">
+            {{ message }}
+          </div>
         </div>
       </div>
     </div>
@@ -55,6 +61,50 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
+
+const email = ref('');
+const isLoading = ref(false);
+const message = ref('');
+const messageType = ref('success');
+
+const submitWaitlist = async () => {
+  if (!email.value || !email.value.includes('@')) {
+    message.value = 'Please enter a valid email address';
+    messageType.value = 'error';
+    return;
+  }
+
+  isLoading.value = true;
+  message.value = '';
+
+  try {
+    const response = await fetch('/api/waitlist', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: email.value }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      message.value = 'Success! Check your email for confirmation.';
+      messageType.value = 'success';
+      email.value = '';
+    } else {
+      message.value = data.message || 'Something went wrong. Please try again.';
+      messageType.value = 'error';
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    message.value = 'Failed to join waitlist. Please try again later.';
+    messageType.value = 'error';
+  } finally {
+    isLoading.value = false;
+  }
+};
 </script>
 
 <style scoped>
@@ -312,6 +362,104 @@
   justify-content: center;
   flex-wrap: wrap;
   animation: buttonsAppear 1s ease-out 0.4s both;
+}
+
+/* Waitlist Form */
+.waitlist-form {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: buttonsAppear 1s ease-out 0.4s both;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.waitlist-input {
+  flex: 1;
+  min-width: 250px;
+  padding: 0.85rem 1.5rem;
+  background: rgba(0, 212, 255, 0.05);
+  border: 1.5px solid rgba(0, 212, 255, 0.3);
+  border-radius: 50px;
+  color: white;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  outline: none;
+  font-family: inherit;
+}
+
+.waitlist-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.waitlist-input:focus {
+  background: rgba(0, 212, 255, 0.1);
+  border-color: rgba(0, 212, 255, 0.5);
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+}
+
+.waitlist-button {
+  padding: 0.85rem 2.2rem;
+  background: linear-gradient(135deg, #00d4ff 0%, #0a9cff 100%);
+  color: #0a0e27;
+  border: none;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
+}
+
+.waitlist-button:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 0 50px rgba(0, 212, 255, 0.6),
+    inset 0 0 20px rgba(255, 255, 255, 0.2),
+    0 12px 30px rgba(0, 212, 255, 0.3);
+}
+
+.waitlist-button:active {
+  transform: translateY(-1px);
+}
+
+.form-message {
+  width: 100%;
+  padding: 0.8rem 1.5rem;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  animation: messageSlide 0.3s ease-out;
+}
+
+.form-message.success {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1.5px solid rgba(34, 197, 94, 0.3);
+  color: #22c55e;
+}
+
+.form-message.error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1.5px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+@keyframes messageSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes buttonsAppear {
