@@ -1,20 +1,13 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
 import { Resend } from 'resend';
 
-dotenv.config();
-
-const app = express();
-const PORT = process.env.PORT || 3001;
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+export default async function handler(req, res) {
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
+  }
 
-// Waitlist endpoint
-app.post('/api/waitlist', async (req, res) => {
   const { email } = req.body;
 
   // Basic validation
@@ -59,14 +52,4 @@ app.post('/api/waitlist', async (req, res) => {
     console.error('Error sending email:', error);
     return res.status(500).json({ message: 'Failed to process request. Please try again later.' });
   }
-});
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'OK' });
-});
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log('✉️ Using Resend for email sending');
-});
+}
