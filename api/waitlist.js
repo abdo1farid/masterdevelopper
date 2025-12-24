@@ -15,6 +15,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: 'Invalid email address' });
   }
 
+  // Check if API key is set
+  if (!process.env.RESEND_API_KEY) {
+    console.error('RESEND_API_KEY is not set');
+    return res.status(500).json({ message: 'Server configuration error' });
+  }
+
   try {
     // Send notification to your email
     await resend.emails.send({
